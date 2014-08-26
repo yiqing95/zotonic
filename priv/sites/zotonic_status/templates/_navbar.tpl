@@ -7,10 +7,15 @@
 
             <div class="nav-collapse pull-right">
                 <ul class="nav">
+                    
 
                     {% if m.acl.user %}
 	            <li{% if zotonic_dispatch == "home" %} class="active"{% endif %}>
                         <a href="{% url home %}">{_ Sites _}</a>
+                    </li>
+
+	            <li{% if zotonic_dispatch == "dashboard" %} class="active"{% endif %}>
+                        <a href="{% url dashboard %}">{_ Dashboard _}</a>
                     </li>
 
 	            <li><a id="{{ #logoff }}" href="#logoff">{_ Log Off _}</a>

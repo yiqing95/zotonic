@@ -37,15 +37,15 @@
                 </div>
             </div>
 	    
-            <div class="row">
-                <div class="span12" id="footer">
+            <div class="navbar navbar-bottom" id="footer">
 		    {% include "_footer.tpl" %}
-                </div>
             </div>
 
         </div><!-- end container -->
         
-	{% include "_js_include.tpl" %}
+        {% block javascript %}
+	    {% include "_js_include.tpl" %}
+        {% endblock %}
 
 	{% block ua_probe %}
 		{% include "_ua_probe.tpl"%}

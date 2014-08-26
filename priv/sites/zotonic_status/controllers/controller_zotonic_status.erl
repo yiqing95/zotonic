@@ -56,7 +56,12 @@ provide_content(ReqData, Context) ->
         undefined -> 
             logon_page(Context2);
         _ -> 
-            status_page(Context2)
+            case z_context:get(zotonic_dispatch, Context2, status) of
+                dashboard ->
+                    dashboard_page(Context2);
+                _ -> 
+                    status_page(Context2)
+            end
     end.
 
 logon_page(Context) ->
@@ -77,6 +82,13 @@ status_page(Context) ->
     Rendered = z_template:render(Template, Vars1, Context),
     {Output, OutputContext} = z_context:output(Rendered, Context),
     start_stream(SitesStatus, OutputContext),
+    ?WM_REPLY(Output, OutputContext).
+
+dashboard_page(Context) ->
+    Template = z_context:get(template, Context),
+    Vars = [{sites, z_sites_manager:get_sites()}|z_context:get_all(Context)],
+    Rendered = z_template:render(Template, Vars, Context),
+    {Output, OutputContext} = z_context:output(Rendered, Context),
     ?WM_REPLY(Output, OutputContext).
 
 

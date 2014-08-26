@@ -2,6 +2,7 @@
 [
 
  {exometer, [{predefined, [
+    {[os, cpu], cpu, [{sample_interval, 1000}]},
     {[erlang, memory], {function, erlang, memory, [], value, []}, []},
     {[erlang, system_info], {function, erlang, system_info, ['$dp'], value, [process_count]}, []},
     {[erlang, statistics], {function, erlang, statistics, ['$dp'], value, [run_queue]}, []},
