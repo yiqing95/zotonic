@@ -35,15 +35,16 @@ render_action(TriggerId, TargetId, Args, Context) ->
     Predicate = proplists:get_value(predicate, Args, depiction),
     Actions = proplists:get_all_values(action, Args),
     Stay = proplists:get_value(stay, Args, false),
+    Center = proplists:get_value(center, Args, 1),
     Callback = proplists:get_value(callback, Args),
-    Postback = {media_upload_dialog, Title, Id, SubjectId, Predicate, Stay, Callback, Actions},
+    Postback = {media_upload_dialog, Title, Id, SubjectId, Predicate, Stay, Center, Callback, Actions},
         {PostbackMsgJS, _PickledPostback} = z_render:make_postback(Postback, click, TriggerId, TargetId, ?MODULE, Context),
         {PostbackMsgJS, Context}.
 
 
 %% @doc Fill the dialog with the new page form. The form will be posted back to this module.
 %% @spec event(Event, Context1) -> Context2
-event(#postback{message={media_upload_dialog, Title, Id, SubjectId, Predicate, Stay, Callback, Actions}}, Context) ->
+event(#postback{message={media_upload_dialog, Title, Id, SubjectId, Predicate, Stay, Center, Callback, Actions}}, Context) ->
     Vars = [
         {delegate, atom_to_list(?MODULE)},
         {id, Id},
@@ -52,7 +53,8 @@ event(#postback{message={media_upload_dialog, Title, Id, SubjectId, Predicate, S
         {actions, Actions},
         {callback, Callback},
         {predicate, Predicate},
-        {stay, Stay}
+        {stay, Stay},
+        {center, Center}
     ],
     DTitle = case Id of undefined -> ?__("Add a new media file", Context); _ -> ?__("Replace current medium", Context) end,
     z_render:dialog(DTitle, "_action_dialog_media_upload.tpl", Vars, Context);
@@ -70,10 +72,13 @@ event(#submit{message={media_upload, EventProps}}, Context) ->
                                            true -> OriginalFilename;
                                            false -> Title
                                        end,
-                            [{title, {trans, [{Lang,NewTitle}]}},
-                             {language, [Lang]},
-                             {original_filename, OriginalFilename}];
-                        _ ->
+                            Props0 = [
+                                {title, {trans, [{Lang,NewTitle}]}},
+                                {language, [Lang]},
+                                {original_filename, OriginalFilename}
+                            ],
+                            add_content_group(EventProps, Props0, Context);
+                        _Id ->
                             [{original_filename, OriginalFilename}]
                     end,
             handle_media_upload(EventProps, Context,
@@ -89,7 +94,10 @@ event(#submit{message={media_url, EventProps}}, Context) ->
     Url = z_context:get_q("url", Context),
     Props = case proplists:get_value(id, EventProps) of
                 undefined ->
-                    [{title, z_context:get_q_validated("new_media_title_url", Context)}];
+                    Props0 = [
+                        {title, z_context:get_q_validated("new_media_title_url", Context)}
+                    ],
+                    add_content_group(EventProps, Props0, Context);
                 _ ->
                     []
             end,
@@ -99,6 +107,18 @@ event(#submit{message={media_url, EventProps}}, Context) ->
                         %% replace fun
                         fun(Id, Ctx) -> m_media:replace_url(Url, Id, Props, Ctx) end).
 
+
+add_content_group(EventProps, Props, Context) ->
+    case proplists:get_value(subject_id, EventProps) of
+        undefined ->
+            [ {content_group_id, proplists:get_value(content_group_id, EventProps)} | Props ];
+        SubjectId when is_integer(SubjectId) ->
+            ContentGroupdId = case proplists:get_value(content_group_id, EventProps) of
+                                    undefined -> m_rsc:p_no_acl(SubjectId, content_group_id, Context);
+                                    CGId -> CGId
+                              end,
+            [ {content_group_id, ContentGroupdId} | Props ]
+    end.
 
 
 %% Handling the media upload.

@@ -75,7 +75,6 @@ window.zAdminBlockConnectDone = function(v) {
     var target_id = $(".rsc-item-wrapper", $block_page).attr('id');
     $("input[type=hidden]", $block_page).val(v.object_id);
     z_notify("update", {z_delegate: 'mod_admin', template: "_rsc_item.tpl", id: v.object_id, z_target_id: target_id});
-    window.zAdminConnectDone(v);
 }
 
 $('#edit-blocks-wrapper').on('click', '.rsc-item h5 a', function(event) {
@@ -92,12 +91,14 @@ $('#edit-blocks-wrapper').on('click', '.rsc-item h5 a', function(event) {
 {% endjavascript %}
 
 {% wire name="admin-block-connect" 
-        action={dialog_open
-                    subject_id=id
-                    predicate=""
-                    template="_action_dialog_connect.tpl" 
-                    title=_"Find page"
-                    callback="window.zAdminBlockConnectDone"}
+    action={dialog_open
+        subject_id=id
+        predicate=""
+        template="_action_dialog_connect.tpl"
+        title=_"Find page"
+        callback="window.zAdminBlockConnectDone"
+        center=0
+    }
 %}
 
 {% wire name="admin-edit-basics" action={dialog_edit_basics template="_rsc_item.tpl"} %}

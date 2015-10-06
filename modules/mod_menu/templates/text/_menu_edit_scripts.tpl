@@ -9,6 +9,7 @@
                 cat=cat_id
                 in_sorter=in_sorter
                 tabs_enabled=["new"]
+                center=0
             }
     %}
 {% elseif is_hierarchy %}
@@ -22,18 +23,19 @@
                 cat=cat_id
                 nocatselect
                 in_sorter=in_sorter
+                center=0
             }
     %}
 {% else %}
 	{# Menu - items can appear multiple times #}
     {% wire name="admin-menu-select" 
-            action={
-                dialog_open 
+            action={dialog_open 
                 template="_action_dialog_connect.tpl" 
                 title=_"Add menu item"
                 callback="window.zMenuEditDone"
                 cat=cat_id
                 in_sorter=in_sorter
+                center=0
             }
     %}
 {% endif %}

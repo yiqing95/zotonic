@@ -44,9 +44,32 @@
         font-size: @_fontSize;
         line-height: @_lineHeight;
         position: relative;
+        transition-duration: 0;
+        -webkit-transition-duration: 0;
+        
+        &,
+        a:link, 
+        a:visited {
+            color: @textColorDark;
+        }
         
         &:hover {
-            background-color: @backgroundColorRowHover;
+            border-color: @borderColorSelection;
+        }
+        
+        // fade out thumbnails that are connected to the page
+        // except when it is a depiction predicate
+        &.thumbnail-connected:not(.thumbnail-depiction) {
+            &,
+            h5, h6,
+            a:link, 
+            a:visited {
+                color: @textColorLight;
+            }
+            img {
+                opacity: .3;
+            }
+            background-color: @backgroundColorLightest;
         }
         
         .z-thumbnail-text {
@@ -86,7 +109,6 @@
         }
         h6 {
             text-transform: lowercase;
-            color: @textColorMuted;
         }
         p {
             max-height: 2 * @_lineHeight;

@@ -32,11 +32,11 @@ for receiving lists of ids in JSON.
 
 Get all resource of the "documentation" category on zotonic.com::
 
-  http://zotonic.com/api/search?cat=documentation
+http://zotonic.com/api/search?cat=documentation
 
 Get a feed of most recent documentation containing the word "filter"::
 
-  http://zotonic.com/feed/search?cat=documentation&text=filter
+http://zotonic.com/feed/search?cat=documentation&text=filter
 
 .. note::
    
@@ -137,6 +137,16 @@ Query-model arguments
   The term ``[*,author],2,3`` selects any resource with an *author*,
   or a connection to the ids 2 or 3 (with any predicate).
 
+**match_objects**
+
+  Find the resources that have similar object edges as the given resource.
+  This is done using a full text query. The resource with most overlapping
+  objects ids will be returned first.
+
+  ``match_objects=1234``
+
+  An ``id_exlude=...`` is automatically added for the resource in the argument.
+
 **is_featured**
 
   A boolean option that specifies if a page should be featured or not.
@@ -235,6 +245,14 @@ Query-model arguments
   will automatically be ordered on the relevancy (rank) of the result.
 
   ``text="test"``
+  
+  Use prefix ``id:`` to find specific resources by id or name:
+  
+  ``text="id:1000"``
+  
+  ``text="id:1000,1001,1002"``
+  
+  ``text="id:category,1"``
 
 **query_id**
 

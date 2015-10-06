@@ -32,11 +32,21 @@
 
         <div class="pull-right">
             <a class="btn btn-default" href="{% url media_attachment star=medium.filename %}" class="button">{_ Download _}</a>
-            {% button   text=_"Replace this media item"
+            {% button
+                text=_"Replace this media item"
                 class="btn btn-primary"
-    	    action={dialog_media_upload id=id action={update target="media-edit-view" template="_admin_edit_media_all.tpl" id=id}} 
-    	    disabled=not id.is_editable %}
-
+                element="a"
+        	    action={dialog_media_upload
+                    id=id
+                    action={update
+                        target="media-edit-view"
+                        template="_admin_edit_media_all.tpl"
+                        id=id
+                    }
+    	            center=0
+    	        } 
+    	        disabled=not id.is_editable
+    	    %}
         </div>
     </div>
 {% else %}
@@ -45,11 +55,20 @@
     </p>
     <div class="form-group clearfix">
         <div class="pull-right">
-            {% button   text=_"Replace this media item"
+            {% button text=_"Replace this media item"
                 class="btn btn-primary"
-    	    action={dialog_media_upload id=id action={update target="media-edit-view" template="_admin_edit_media_all.tpl" id=id}} 
-    	    disabled=not id.is_editable %}
-
+                element="a"
+    	        action={dialog_media_upload
+    	            id=id
+    	            action={update
+    	                target="media-edit-view"
+    	                template="_admin_edit_media_all.tpl"
+    	                id=id
+    	            }
+    	            center=0
+    	        } 
+    	        disabled=not id.is_editable
+    	    %}
         </div>
     </div>
 {% endif %}

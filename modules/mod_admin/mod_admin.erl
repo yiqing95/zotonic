@@ -204,10 +204,11 @@ event(#postback_notify{message="admin-insert-block"}, Context) ->
     end;
 
 event(#postback_notify{message="feedback", trigger="dialog-connect-find", target=TargetId}, Context) ->
-                                                % Find pages matching the search criteria.
+    % Find pages matching the search criteria.
     SubjectId = z_convert:to_integer(z_context:get_q(subject_id, Context)),
     Category = z_context:get_q(find_category, Context),
-    Text=z_context:get_q(find_text, Context),
+    Predicate = z_context:get_q(predicate, Context, ""),
+    Text = z_context:get_q(find_text, Context),
     Cats = case Category of
                 "p:"++Predicate -> m_predicate:object_category(Predicate, Context);
                 <<"p:", Predicate/binary>> -> m_predicate:object_category(Predicate, Context);
@@ -218,6 +219,7 @@ event(#postback_notify{message="feedback", trigger="dialog-connect-find", target
     Vars = [
         {subject_id, SubjectId},
         {cat, Cats},
+        {predicate, Predicate},
         {text, Text}
     ],
     z_render:wire([
@@ -225,25 +227,47 @@ event(#postback_notify{message="feedback", trigger="dialog-connect-find", target
         {update, [{target, TargetId}, {template, "_action_dialog_connect_tab_find_results.tpl"} | Vars]}
     ], Context);
 
-event(#postback_notify{message="admin-connect-select"}, Context) ->
+event(#postback{message={admin_connect_select, Args}}, Context) ->
+    SelectId = z_context:get_q("select_id", Context),
+    SubjectId0 = proplists:get_value(subject_id, Args),
+    ObjectId0 = proplists:get_value(object_id, Args),
+    Predicate = proplists:get_value(predicate, Args),
+    Callback = proplists:get_value(callback, Args),
+    
+    QAction = proplists:get_all_values(action, Args),
+    QActions = proplists:get_value(actions, Args, []),
+    QAction1 = case QAction of
+        [undefined] -> [];
+        _ -> QAction
+    end,
+    QActions1 = case QActions of
+        undefined -> [];
+        _ -> QActions
+    end,
+    Actions = QAction1 ++ QActions1,
+
     {SubjectId, ObjectId} =
-        case z_utils:is_empty(z_context:get_q("object_id", Context)) of
+        case z_utils:is_empty(ObjectId0) of
             true ->
-                {z_convert:to_integer(z_context:get_q("subject_id", Context)),
-                 z_convert:to_integer(z_context:get_q("select_id", Context))};
+                {z_convert:to_integer(SubjectId0),
+                 z_convert:to_integer(SelectId)};
             false ->
-                {z_convert:to_integer(z_context:get_q("select_id", Context)),
-                 z_convert:to_integer(z_context:get_q("object_id", Context))}
+                {z_convert:to_integer(SelectId),
+                 z_convert:to_integer(ObjectId0)}
         end,
-    Predicate = z_context:get_q("predicate", Context),
-    Callback = z_context:get_q("callback", Context),
+    
     case do_link(SubjectId, Predicate, ObjectId, Callback, Context) of
         {ok, Context1} ->
-            z_render:dialog_close(Context1);
+            Context2 = z_render:dialog_close(Context1),
+            case Actions of
+                [] -> Context2;
+                _ -> z_render:wire(Actions, Context2)
+            end;
         {error, Context1} ->
             Context1
     end;
 
+%% Called when a block connection is done
 event(#postback_notify{message="update", target=TargetId}, Context) ->
     Template = filename:basename(z_context:get_q("template", Context)),
     Id = z_convert:to_integer(z_context:get_q("id", Context)),
