@@ -624,6 +624,9 @@ rsc_is_media_cat(Id, Context) ->
 
 mime_to_category(Mime) ->
     case Mime of
+        "text/html-video-embed" -> video;
+        <<"text/html-video-embed">> -> video;
+
         "image/" ++ _ -> image;
         "video/" ++ _ -> video;
         "audio/" ++ _ -> audio;

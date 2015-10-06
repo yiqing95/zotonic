@@ -63,7 +63,8 @@ update(RscId, #media_import_props{medium_props=[], preview_url=undefined, medium
 update(RscId, #media_import_props{medium_props=MP, medium_url=undefined} = MI, Context) when MP =/= [] ->
     % Embedded, with optional preview_url
     RscProps = [
-        {original_filename, proplists:get_value(original_filename, MP)}
+        {original_filename, proplists:get_value(original_filename, MP)},
+        {category, proplists:get_value(category, MI#media_import_props.rsc_props, m_media:mime_to_category(proplists:get_value(mime, MP)))}
     ],
     Options = [
         {preview_url, MI#media_import_props.preview_url}
@@ -72,7 +73,8 @@ update(RscId, #media_import_props{medium_props=MP, medium_url=undefined} = MI, C
 update(RscId, #media_import_props{medium_props=MP, medium_url=MediumUrl} = MI, Context) ->
     % Downloadable file, with optional preview_url
     RscProps = [
-        {original_filename, proplists:get_value(original_filename, MP)}
+        {original_filename, proplists:get_value(original_filename, MP)},
+        {category, proplists:get_value(category, MI#media_import_props.rsc_props, m_media:mime_to_category(proplists:get_value(mime, MP)))}
     ],
     Options = [
         {preview_url, MI#media_import_props.preview_url}
