@@ -22,5 +22,4 @@
         {% include "_logon_form.tpl" page=page|default:"/admin" hide_title %}
     </div>
 </div>
-</div>
 {% endblock %}
