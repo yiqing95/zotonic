@@ -57,14 +57,14 @@
 insert(Props, Context) ->
     insert(Props, [{escape_texts, true}], Context).
 
--spec insert(list(), list()|boolean(), #context{}) -> {ok, integer()}.
+-spec insert(list(), list() | boolean(), #context{}) -> {ok, integer()}.
 insert(Props, Options, Context) ->
     PropsDefaults = props_defaults(Props, Context),
     update(insert_rsc, PropsDefaults, Options, Context).
 
 
 %% @doc Delete a resource
--spec delete(integer(), #context{}) -> ok.
+-spec delete(m_rsc:resource(), #context{}) -> ok | {error, atom()}.
 delete(Id, Context) when is_integer(Id), Id /= 1 ->
     case z_acl:rsc_deletable(Id, Context) of
         true ->
@@ -76,16 +76,17 @@ delete(Id, Context) when is_integer(Id), Id /= 1 ->
             end;
         false ->
             throw({error, eacces})
-    end.
-
+    end;
+delete(Name, Context) when Name /= undefined ->
+    delete(m_rsc:rid(Name, Context), Context).
 
 %% @doc Delete a resource, no check on rights etc is made. This is called by m_category:delete/3
 %% @throws {error, Reason}
--spec delete_nocheck(integer(), #context{}) -> ok.
+-spec delete_nocheck(m_rsc:resource(), #context{}) -> ok.
 delete_nocheck(Id, Context) ->
-    delete_nocheck(Id, undefined, Context).
+    delete_nocheck(m_rsc:rid(Id, Context), undefined, Context).
 
-delete_nocheck(Id, OptFollowUpId, Context) ->
+delete_nocheck(Id, OptFollowUpId, Context) when is_integer(Id) ->
     Referrers = m_edge:subjects(Id, Context),
     CatList = m_rsc:is_a(Id, Context),
     Props = m_rsc:get(Id, Context),
@@ -202,14 +203,14 @@ flush(Id, Context) ->
     flush(Id, CatList, Context).
     
 flush(Id, CatList, Context) ->
-    z_depcache:flush(Id, Context),
+    z_depcache:flush(m_rsc:rid(Id, Context), Context),
     [ z_depcache:flush(Cat, Context) || Cat <- CatList ],
     ok.
 
 
 %% @doc Duplicate a resource, creating a new resource with the given title.
 %% @throws {error, Reason}
--spec duplicate(integer(), list(), #context{}) -> {ok, integer()}.
+-spec duplicate(m_rsc:resource(), list(), #context{}) -> {ok, m_rsc:resource_id()} | {error, term()}.
 duplicate(Id, DupProps, Context) ->
     case z_acl:rsc_visible(Id, Context) of
         true ->
@@ -238,17 +239,17 @@ duplicate(Id, DupProps, Context) ->
 %% @doc Update a resource
 %% @spec update(Id, Props, Context) -> {ok, Id}
 %% @throws {error, Reason}
--spec update(integer()|insert_rsc, list(), #context{}) -> {ok, integer()} | {error, term()}.
+-spec update(m_rsc:resource() | insert_rsc, list(), #context{}) -> {ok, integer()} | {error, term()}.
 update(Id, Props, Context) ->
     update(Id, Props, [], Context).
 
--spec update(integer()|insert_rsc, list(), list()|boolean(), #context{}) -> {ok, integer()} | {error, term()}.
+%% @doc Update a resource
+-spec update(m_rsc:resource() | insert_rsc, list(), list() | boolean(), #context{}) -> {ok, integer()} | {error, term()}.
 update(Id, Props, false, Context) ->
     update(Id, Props, [{escape_texts, false}], Context);
 update(Id, Props, true, Context) ->
     update(Id, Props, [{escape_texts, true}], Context);
 
-%% @doc Resource updater function
 %% [Options]: {escape_texts, true|false (default: true}, {acl_check: true|false (default: true)}
 %% {escape_texts, false} checks if the texts are escaped, and if not then it will escape. This prevents "double-escaping" of texts.
 update(Id, Props, Options, Context) when is_integer(Id) orelse Id =:= insert_rsc ->
@@ -261,7 +262,9 @@ update(Id, Props, Options, Context) when is_integer(Id) orelse Id =:= insert_rsc
                         andalso z_acl:is_admin(Context),
         expected = proplists:get_value(expected, Options, [])
     },
-    update_imported_check(RscUpd, Props, Context).
+    update_imported_check(RscUpd, Props, Context);
+update(Id, Props, Options, Context) ->
+    update(m_rsc:rid(Id, Context), Props, Options, Context).
 
 update_imported_check(#rscupd{is_import=true, id=Id} = RscUpd, Props, Context) when is_integer(Id) ->
     case m_rsc:exists(Id, Context) of
